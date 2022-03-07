@@ -31,6 +31,9 @@ uint8_t secondary_Timer = 0;
 uint8_t secondary_button_State = 0;
 
 void singleLED(uint8_t led){
+  Serial.println("Single LED");
+  Serial.println(led);
+  
   for(uint8_t i = 0; i < LED_COUNT; i++){
     if(led == i){
       digitalWrite(leds[i], HIGH);
@@ -41,21 +44,15 @@ void singleLED(uint8_t led){
 }
 
 void boot_Animation(){
-  for(uint8_t i = 0; i < LED_COUNT; i++){
+  for(int8_t i = 0; i < LED_COUNT; i++){
     singleLED(i);
     delay(100);
   }
 
-  singleLED(LED_COUNT);
-  delay(100);
-
-  for(uint8_t i = LED_COUNT - 1; i >= 0; i--){
+  for(int8_t i = LED_COUNT - 2; i >= 0; i--){
     singleLED(i);
     delay(100);
   }
-  
-  singleLED(LED_COUNT);
-  delay(100);
 }
 
 void set_Outputs(){
@@ -89,11 +86,11 @@ void set_Outputs(){
   if(secondary_State == 0){
     digitalWrite(led_4, LOW);
     
-    digitalWrite(relay_3, LOW);
+    digitalWrite(relay_3, HIGH);
   }else{
     digitalWrite(led_4, HIGH);
     
-    digitalWrite(relay_3, HIGH);
+    digitalWrite(relay_3, LOW);
   }
 }
 
@@ -120,6 +117,9 @@ void save_Data(){
 }
 
 void setup() {
+  Serial.begin(9600);
+  Serial.println("Starting...");
+  
   pinMode(relay_1, OUTPUT);
   digitalWrite(relay_1, HIGH);
   pinMode(relay_2, OUTPUT);
@@ -138,11 +138,11 @@ void setup() {
   pinMode(led_4, OUTPUT);
   
   load_Data();
+  
+  boot_Animation();
+
   set_Outputs();
-  
-  //boot_Animation();
-  
-  Serial.begin(9600);
+  Serial.println("READY!");
 }
 
 void loop() {
