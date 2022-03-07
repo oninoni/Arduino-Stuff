@@ -31,6 +31,9 @@ uint8_t leds[] = {
 uint8_t main_State = 0;
 
 void singleLED(uint8_t led){
+  Serial.println("Single LED");
+  Serial.println(led);
+  
   for(uint8_t i = 0; i < LED_COUNT; i++){
     if(led == i){
       digitalWrite(leds[i], HIGH);
@@ -41,45 +44,67 @@ void singleLED(uint8_t led){
 }
 
 void boot_Animation(){
-  for(uint8_t i = 0; i < LED_COUNT; i++){
+  for(int8_t i = 0; i < LED_COUNT; i++){
     singleLED(i);
     delay(100);
   }
 
-  singleLED(LED_COUNT);
-  delay(100);
-
-  for(uint8_t i = LED_COUNT - 1; i >= 0; i++){
+  for(int8_t i = LED_COUNT - 2; i >= 0; i--){
     singleLED(i);
     delay(100);
   }
-  
-  singleLED(LED_COUNT);
-  delay(100);
 }
 
 void set_Outputs(){
-  singleLED(main_State);
-  
-  switch(main_State % 3){
+  switch(main_State / 2){
     case 0:
       digitalWrite(relay_1, LOW);
       digitalWrite(relay_2, LOW);
+      
+      digitalWrite(led_1, HIGH);
+      digitalWrite(led_3, LOW);
+      digitalWrite(led_5, LOW);
       break;
     case 1:
       digitalWrite(relay_1, HIGH);
       digitalWrite(relay_2, LOW);
+      
+      digitalWrite(led_1, LOW);
+      digitalWrite(led_3, HIGH);
+      digitalWrite(led_5, LOW);
       break;
     case 2:
       digitalWrite(relay_1, HIGH);
       digitalWrite(relay_2, HIGH);
+      
+      digitalWrite(led_1, LOW);
+      digitalWrite(led_3, LOW);
+      digitalWrite(led_5, HIGH);
       break;
   }
   
-  if(main_State >= 3){
-    digitalWrite(relay_3, LOW);
-  }else{
+  if(main_State % 2){
     digitalWrite(relay_3, HIGH);
+    
+    switch(main_State / 2){
+      case 0:
+        digitalWrite(led_2, HIGH);
+        digitalWrite(led_4, LOW);
+        digitalWrite(led_6, LOW);
+        break;
+      case 1:
+        digitalWrite(led_2, LOW);
+        digitalWrite(led_4, HIGH);
+        digitalWrite(led_6, LOW);
+        break;
+      case 2:
+        digitalWrite(led_2, LOW);
+        digitalWrite(led_4, LOW);
+        digitalWrite(led_6, HIGH);
+        break;
+  }
+  }else{
+    digitalWrite(relay_3, LOW);
   }
 }
 
@@ -98,6 +123,9 @@ void save_Data(){
 }
 
 void setup() {
+  Serial.begin(9600);
+  Serial.println("Starting...");
+
   pinMode(relay_1, OUTPUT);
   digitalWrite(relay_1, HIGH);
   pinMode(relay_2, OUTPUT);
@@ -120,11 +148,11 @@ void setup() {
   pinMode(led_6, OUTPUT);
   
   load_Data();
-  set_Outputs();
   
   boot_Animation();
-  
-  Serial.begin(9600);
+
+  set_Outputs();
+  Serial.println("READY!");
 }
 
 void loop() {
