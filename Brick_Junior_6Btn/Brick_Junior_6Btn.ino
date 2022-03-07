@@ -1,34 +1,34 @@
 #include <EEPROM.h>
 
-#define relay_1 2
-#define relay_2 3
-#define relay_3 A3
+#define relay_1 2  // XLR 3 (Clean/Overdrive)
+#define relay_2 3  // XLR 4 (Crunch/Drive)
+#define relay_3 A3 // XLR 5 (Rythm/Lead)
 
 #define btn_1 9
 #define btn_2 8
 #define btn_3 7
 #define btn_4 6
+#define btn_5 5
+#define btn_6 4
 
 #define led_1 10
 #define led_2 11
 #define led_3 12
 #define led_4 13
+#define led_5 A0
+#define led_6 A1
 uint8_t leds[] = {
   led_1,
   led_2,
   led_3,
   led_4,
+  led_5,
+  led_6,
 };
-#define LED_COUNT 4
+#define LED_COUNT 6
 
 // State Machine with 3 States for first 3 Buttons
 uint8_t main_State = 0;
-
-// Secondary State for 4th Button
-uint8_t secondary_State = 1;
-// Secondary State Entprellen
-uint8_t secondary_Timer = 0;
-uint8_t secondary_button_State = 0;
 
 void singleLED(uint8_t led){
   for(uint8_t i = 0; i < LED_COUNT; i++){
@@ -59,64 +59,42 @@ void boot_Animation(){
 }
 
 void set_Outputs(){
-  switch(main_State){
+  singleLED(main_State);
+  
+  switch(main_State % 3){
     case 0:
-      digitalWrite(led_1, HIGH);
-      digitalWrite(led_2, LOW);
-      digitalWrite(led_3, LOW);
-
       digitalWrite(relay_1, LOW);
       digitalWrite(relay_2, LOW);
       break;
     case 1:
-      digitalWrite(led_1, LOW);
-      digitalWrite(led_2, HIGH);
-      digitalWrite(led_3, LOW);
-
-      digitalWrite(relay_1, HIGH);
-      digitalWrite(relay_2, HIGH);
-      break;
-    case 2:
-      digitalWrite(led_1, LOW);
-      digitalWrite(led_2, LOW);
-      digitalWrite(led_3, HIGH);
-
       digitalWrite(relay_1, HIGH);
       digitalWrite(relay_2, LOW);
       break;
+    case 2:
+      digitalWrite(relay_1, HIGH);
+      digitalWrite(relay_2, HIGH);
+      break;
   }
   
-  if(secondary_State == 0){
-    digitalWrite(led_4, LOW);
-    
+  if(main_State >= 3){
     digitalWrite(relay_3, LOW);
   }else{
-    digitalWrite(led_4, HIGH);
-    
     digitalWrite(relay_3, HIGH);
   }
 }
 
 void load_Data(){
   uint8_t main_State_Load = EEPROM.read(0);
-  uint8_t secondary_State_Load = EEPROM.read(1);
-
-  if(main_State_Load == 0 || main_State_Load == 1 || main_State_Load == 2){
+  
+  if(main_State_Load >= 0 && main_State_Load <= 5){
     main_State = main_State_Load;
   }else{
     main_State = 0;
-  }
-
-  if(secondary_State_Load == 0 || secondary_State_Load == 1){
-    secondary_State = secondary_State_Load;
-  }else{
-    secondary_State = 0;
   }
 }
 
 void save_Data(){
   EEPROM.write(0, main_State);
-  EEPROM.write(1, secondary_State);
 }
 
 void setup() {
@@ -131,11 +109,15 @@ void setup() {
   pinMode(btn_2, INPUT_PULLUP);
   pinMode(btn_3, INPUT_PULLUP);
   pinMode(btn_4, INPUT_PULLUP);
+  pinMode(btn_5, INPUT_PULLUP);
+  pinMode(btn_6, INPUT_PULLUP);
   
   pinMode(led_1, OUTPUT);
   pinMode(led_2, OUTPUT);
   pinMode(led_3, OUTPUT);
   pinMode(led_4, OUTPUT);
+  pinMode(led_5, OUTPUT);
+  pinMode(led_6, OUTPUT);
   
   load_Data();
   set_Outputs();
@@ -155,21 +137,15 @@ void loop() {
   }else if(digitalRead(btn_3) == 0){
     main_State = 2;
     save_Data();
-  }
-
-  if(secondary_Timer == 0){
-    if(digitalRead(btn_4) == 1 && secondary_button_State == 1){
-      secondary_button_State = 0;
-    }
-
-    if(digitalRead(btn_4) == 0 && secondary_button_State == 0){
-      secondary_button_State = 1;
-      secondary_Timer = 10; // Button can be pressed 10 times a sec ( 10 * 10 ms == 100 ms / 10Hz)
-      secondary_State = (secondary_State + 1) % 2;
-      save_Data();
-    }
-  }else{
-    secondary_Timer--;
+  }else if(digitalRead(btn_4) == 0){
+    main_State = 3;
+    save_Data();
+  }else if(digitalRead(btn_5) == 0){
+    main_State = 4;
+    save_Data();
+  }else if(digitalRead(btn_6) == 0){
+    main_State = 5;
+    save_Data();
   }
 
   delay(10);

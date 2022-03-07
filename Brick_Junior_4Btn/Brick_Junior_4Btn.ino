@@ -1,8 +1,8 @@
 #include <EEPROM.h>
 
-#define relay_1 2
-#define relay_2 3
-#define relay_3 A3
+#define relay_1 2  // XLR 3 (Clean/Overdrive)
+#define relay_2 3  // XLR 4 (Crunch/Drive)
+#define relay_3 A3 // XLR 5 (Rythm/Lead)
 
 #define btn_1 9
 #define btn_2 8
@@ -49,7 +49,7 @@ void boot_Animation(){
   singleLED(LED_COUNT);
   delay(100);
 
-  for(uint8_t i = LED_COUNT - 1; i >= 0; i++){
+  for(uint8_t i = LED_COUNT - 1; i >= 0; i--){
     singleLED(i);
     delay(100);
   }
@@ -140,7 +140,7 @@ void setup() {
   load_Data();
   set_Outputs();
   
-  boot_Animation();
+  //boot_Animation();
   
   Serial.begin(9600);
 }
